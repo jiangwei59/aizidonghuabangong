@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小微企业自动化办公系统</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+    <!-- ========== 登录页面 ========== -->
+    <div id="loginPage" class="login-page">
+        <div class="login-box">
+            <div class="login-logo">
+                <span class="login-icon">📊</span>
+            </div>
+            <h1>小微企业办公系统</h1>
+            <p class="login-subtitle">Enterprise Office Management System</p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>👤 用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">登 录</button>
+                <p id="loginError" class="error-msg"></p>
+            </form>
+            <div class="login-footer">
+                <p>© 2026 小微企业办公系统 v1.0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 主界面 ========== -->
+    <div id="mainPage" class="main-page" style="display:none;">
+        <!-- 顶部导航栏 -->
+        <header class="header">
+            <div class="header-left">
+                <span class="logo">小微企业办公系统</span>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-link active" data-page="customers">📋 客户管理</a>
+                <a href="#" class="nav-link" data-page="orders">📦 订单管理</a>
+                <a href="#" class="nav-link" data-page="followups">📞 跟进记录</a>
+                <a href="#" class="nav-link" data-page="documents">📄 文档导出</a>
+                <a href="#" class="nav-link" data-page="alerts">🔔 异常提醒</a>
+            </nav>
+            <div class="header-right">
+                <span id="currentUser">👤 admin</span>
+                <button class="btn btn-sm btn-logout" onclick="App.logout()">退出登录</button>
+            </div>
+        </header>
+
+        <!-- 内容区域 -->
+        <main class="content">
+
+            <!-- ===== 客户管理模块 ===== -->
+            <div id="page-customers" class="page active">
+                <div class="page-header">
+                    <h2>客户管理</h2>
+                    <div class="page-actions">
+                        <input type="text" id="customerSearch" placeholder="搜索客户名称/联系人" class="input-sm">
+                        <button class="btn btn-primary" onclick="App.showCustomerForm()">+ 新增客户</button>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>客户名称</th>
+                            <th>联系人</th>
+                            <th>电话</th>
+                            <th>地址</th>
+                            <th>录入时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody">
+                        <!-- 动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ===== 订单管理模块 ===== -->
+            <div id="page-orders" class="page">
+                <div class="page-header">
+                    <h2>订单管理</h2>
+                    <div class="page-actions">
+                        <input type="text" id="orderSearch" placeholder="搜索订单编号/客户名称" class="input-sm">
+                        <select id="orderStatusFilter" class="input-sm">
+                            <option value="">全部状态</option>
+                            <option value="待处理">待处理</option>
+                            <option value="生产中">生产中</option>
+                            <option value="已发货">已发货</option>
+                            <option value="已完成">已完成</option>
+                            <option value="已取消">已取消</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="App.showOrderForm()">+ 新增订单</button>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>订单编号</th>
+                            <th>客户</th>
+                            <th>金额</th>
+                            <th>商品信息</th>
+                            <th>交货时间</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody">
+                        <!-- 动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ===== 跟进记录模块 ===== -->
+            <div id="page-followups" class="page">
+                <div class="page-header">
+                    <h2>跟进记录</h2>
+                    <div class="page-actions">
+                        <select id="followupCustomerFilter" class="input-sm">
+                            <option value="">全部客户</option>
+                            <!-- 动态填充客户列表 -->
+                        </select>
+                        <button class="btn btn-primary" onclick="App.showFollowupForm()">+ 新增跟进</button>
+                    </div>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>客户</th>
+                            <th>跟进内容</th>
+                            <th>跟进时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="followupTableBody">
+                        <!-- 动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ===== 文档导出模块 ===== -->
+            <div id="page-documents" class="page">
+                <div class="page-header">
+                    <h2>文档导出</h2>
+                    <p class="page-desc">选择订单，自动生成固定模板的 Word 文档（包含客户信息+订单详情）</p>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>订单编号</th>
+                            <th>客户</th>
+                            <th>金额</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documentTableBody">
+                        <!-- 动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ===== 异常提醒模块 ===== -->
+            <div id="page-alerts" class="page">
+                <div class="page-header">
+                    <h2>异常提醒</h2>
+                    <p class="page-desc">展示到期订单和待跟进客户，帮助您及时处理业务</p>
+                </div>
+                <div class="alerts-container">
+                    <div class="alert-section">
+                        <h3>⚠️ 到期订单（7天内）</h3>
+                        <div id="dueOrdersList" class="alert-list">
+                            <!-- 动态填充 -->
+                        </div>
+                    </div>
+                    <div class="alert-section">
+                        <h3>📞 待跟进客户（30天未跟进）</h3>
+                        <div id="pendingFollowupsList" class="alert-list">
+                            <!-- 动态填充 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ========== 弹窗：客户表单 ========== -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="customerModalTitle">新增客户</h3>
+                <span class="modal-close" onclick="App.closeModal('customerModal')">&times;</span>
+            </div>
+            <form id="customerForm">
+                <input type="hidden" id="customerId">
+                <div class="form-group">
+                    <label>客户名称 *</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label>联系人</label>
+                    <input type="text" id="customerContact">
+                </div>
+                <div class="form-group">
+                    <label>电话</label>
+                    <input type="text" id="customerPhone">
+                </div>
+                <div class="form-group">
+                    <label>地址</label>
+                    <input type="text" id="customerAddress">
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="customerNotes" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="App.closeModal('customerModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========== 弹窗：订单表单 ========== -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="orderModalTitle">新增订单</h3>
+                <span class="modal-close" onclick="App.closeModal('orderModal')">&times;</span>
+            </div>
+            <form id="orderForm">
+                <input type="hidden" id="orderId">
+                <div class="form-group">
+                    <label>关联客户 *</label>
+                    <select id="orderCustomerId" required>
+                        <option value="">请选择客户</option>
+                        <!-- 动态填充 -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>订单金额</label>
+                    <input type="number" id="orderAmount" step="0.01" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label>商品信息</label>
+                    <textarea id="orderProductInfo" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>交货时间</label>
+                    <input type="date" id="orderDeliveryDate">
+                </div>
+                <div class="form-group">
+                    <label>订单状态</label>
+                    <select id="orderStatus">
+                        <option value="待处理">待处理</option>
+                        <option value="生产中">生产中</option>
+                        <option value="已发货">已发货</option>
+                        <option value="已完成">已完成</option>
+                        <option value="已取消">已取消</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="App.closeModal('orderModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========== 弹窗：跟进记录表单 ========== -->
+    <div id="followupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>新增跟进记录</h3>
+                <span class="modal-close" onclick="App.closeModal('followupModal')">&times;</span>
+            </div>
+            <form id="followupForm">
+                <div class="form-group">
+                    <label>关联客户 *</label>
+                    <select id="followupCustomerId" required>
+                        <option value="">请选择客户</option>
+                        <!-- 动态填充 -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>跟进内容 *</label>
+                    <textarea id="followupContent" rows="4" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="App.closeModal('followupModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 加载 JS -->
+    <script src="/js/api.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
