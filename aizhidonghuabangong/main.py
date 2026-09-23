@@ -9,6 +9,9 @@ from database import get_db, init_db, SessionLocal
 from models import User
 from schemas import UserLogin, TokenResponse
 from auth import hash_password, verify_password, create_access_token
+import os
+print("===== DATABASE_URL FROM ENV =====", os.getenv("DATABASE_URL"))
+
 
 # 导入路由模块
 from routers import customers, orders, followups, documents, alerts
