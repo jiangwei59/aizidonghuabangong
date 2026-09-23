@@ -4,7 +4,7 @@
 from datetime import datetime, date
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select, func
 
 from database import get_db
@@ -15,7 +15,7 @@ from auth import get_current_user
 router = APIRouter(prefix="/api/orders", tags=["订单管理"])
 
 
-async def generate_order_no(db: AsyncSession) -> str:
+def generate_order_no(db) -> str:
     """
     自动生成订单编号
     格式：ORD-YYYYMMDD-XXXX（如 ORD-20260922-0001）
@@ -25,7 +25,7 @@ async def generate_order_no(db: AsyncSession) -> str:
     prefix = f"ORD-{today_str}-"
 
     # 查询今天已有订单中最大的编号
-    result = await db.execute(
+    result = db.execute(
         select(func.max(Order.order_no)).where(Order.order_no.like(f"{prefix}%"))
     )
     max_no = result.scalar()
@@ -43,7 +43,7 @@ async def generate_order_no(db: AsyncSession) -> str:
 async def list_orders(
     keyword: Optional[str] = Query(None, description="搜索关键词（订单编号/客户名称）"),
     status: Optional[str] = Query(None, description="订单状态筛选"),
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """
@@ -81,7 +81,7 @@ async def list_orders(
 @router.get("/{order_id}", response_model=OrderResponse)
 async def get_order(
     order_id: int,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """查询单个订单详情"""
@@ -100,7 +100,7 @@ async def get_order(
 @router.post("", response_model=OrderResponse)
 async def create_order(
     data: OrderCreate,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """
@@ -114,15 +114,15 @@ async def create_order(
         raise HTTPException(status_code=400, detail="关联客户不存在")
 
     # 生成订单编号
-    order_no = await generate_order_no(db)
+    order_no = generate_order_no(db)
 
     order = Order(
         order_no=order_no,
         **data.model_dump()
     )
     db.add(order)
-    await db.flush()
-    await db.refresh(order)
+    db.flush()
+    db.refresh(order)
 
     order_data = OrderResponse.model_validate(order)
     order_data.customer_name = customer.name
@@ -133,7 +133,7 @@ async def create_order(
 async def update_order(
     order_id: int,
     data: OrderCreate,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """编辑订单（订单编号不可修改）"""
@@ -163,7 +163,7 @@ async def update_order(
 @router.delete("/{order_id}")
 async def delete_order(
     order_id: int,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """删除订单"""

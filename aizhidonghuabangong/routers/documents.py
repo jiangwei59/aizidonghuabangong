@@ -5,7 +5,7 @@ import io
 from urllib.parse import quote
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
 
 from database import get_db
@@ -16,9 +16,9 @@ router = APIRouter(prefix="/api/documents", tags=["文档生成"])
 
 
 @router.get("/generate/{order_id}")
-async def generate_document(
+def generate_document(
     order_id: int,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """
@@ -26,13 +26,13 @@ async def generate_document(
     文档包含客户信息和订单详情，使用固定模板
     """
     # 查询订单
-    order_result = await db.execute(select(Order).where(Order.id == order_id))
+    order_result = db.execute(select(Order).where(Order.id == order_id))
     order = order_result.scalar_one_or_none()
     if not order:
         raise HTTPException(status_code=404, detail="订单不存在")
 
     # 查询客户
-    cust_result = await db.execute(select(Customer).where(Customer.id == order.customer_id))
+    cust_result = db.execute(select(Customer).where(Customer.id == order.customer_id))
     customer = cust_result.scalar_one_or_none()
     if not customer:
         raise HTTPException(status_code=404, detail="关联客户不存在")

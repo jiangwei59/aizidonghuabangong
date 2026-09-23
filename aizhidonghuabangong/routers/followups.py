@@ -4,7 +4,7 @@
 from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
 
 from database import get_db
@@ -16,9 +16,9 @@ router = APIRouter(prefix="/api/followups", tags=["跟进记录"])
 
 
 @router.get("", response_model=list[FollowUpResponse])
-async def list_followups(
+def list_followups(
     customer_id: Optional[int] = Query(None, description="按客户ID筛选"),
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """
@@ -30,13 +30,13 @@ async def list_followups(
     if customer_id:
         query = query.where(FollowUp.customer_id == customer_id)
 
-    result = await db.execute(query)
+    result = db.execute(query)
     followups = result.scalars().all()
 
     # 补充客户名称
     followup_list = []
     for fu in followups:
-        cust_result = await db.execute(select(Customer.name).where(Customer.id == fu.customer_id))
+        cust_result = db.execute(select(Customer.name).where(Customer.id == fu.customer_id))
         fu_data = FollowUpResponse.model_validate(fu)
         fu_data.customer_name = cust_result.scalar_one_or_none()
         followup_list.append(fu_data)
@@ -47,7 +47,7 @@ async def list_followups(
 @router.post("", response_model=FollowUpResponse)
 async def create_followup(
     data: FollowUpCreate,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """
@@ -77,7 +77,7 @@ async def create_followup(
 @router.delete("/{followup_id}")
 async def delete_followup(
     followup_id: int,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """删除跟进记录"""

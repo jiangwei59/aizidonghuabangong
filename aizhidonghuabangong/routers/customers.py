@@ -3,7 +3,7 @@
 
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
 
 from database import get_db
@@ -15,9 +15,9 @@ router = APIRouter(prefix="/api/customers", tags=["客户管理"])
 
 
 @router.get("", response_model=list[CustomerResponse])
-async def list_customers(
+def list_customers(
     keyword: Optional[str] = Query(None, description="搜索关键词（客户名称/联系人）"),
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """
@@ -32,18 +32,18 @@ async def list_customers(
             Customer.name.contains(keyword) | Customer.contact.contains(keyword)
         )
 
-    result = await db.execute(query)
+    result = db.execute(query)
     return result.scalars().all()
 
 
 @router.get("/{customer_id}", response_model=CustomerResponse)
 async def get_customer(
     customer_id: int,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """查询单个客户详情"""
-    result = await db.execute(select(Customer).where(Customer.id == customer_id))
+    result = db.execute(select(Customer).where(Customer.id == customer_id))
     customer = result.scalar_one_or_none()
     if not customer:
         raise HTTPException(status_code=404, detail="客户不存在")
@@ -53,14 +53,14 @@ async def get_customer(
 @router.post("", response_model=CustomerResponse)
 async def create_customer(
     data: CustomerCreate,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """新增客户"""
     customer = Customer(**data.model_dump())
     db.add(customer)
-    await db.flush()
-    await db.refresh(customer)
+    db.flush()
+    db.refresh(customer)
     return customer
 
 
@@ -68,7 +68,7 @@ async def create_customer(
 async def update_customer(
     customer_id: int,
     data: CustomerCreate,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """编辑客户信息"""
@@ -89,7 +89,7 @@ async def update_customer(
 @router.delete("/{customer_id}")
 async def delete_customer(
     customer_id: int,
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """删除客户"""

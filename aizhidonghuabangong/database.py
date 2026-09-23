@@ -1,24 +1,23 @@
+# database.py 同步数据库配置，适配Render Postgres
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-# 读取Render环境变量
+# 读取Render环境变量 Internal Database URL
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# 关键：把 postgresql:// → postgresql+psycopg2://
-if DATABASE_URL.startswith("postgresql://"):
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True, # Render数据库休眠自动重连，非常重要
-)
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# 获取数据库会话
+
+def init_db():
+    """自动创建数据表"""
+    Base.metadata.create_all(bind=engine)
+
+
 def get_db():
+    """数据库依赖项，接口调用自动获取session"""
     db = SessionLocal()
     try:
         yield db

@@ -3,7 +3,7 @@
 
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
 
 from database import get_db
@@ -15,8 +15,8 @@ router = APIRouter(prefix="/api/alerts", tags=["异常提醒"])
 
 
 @router.get("", response_model=AlertResponse)
-async def get_alerts(
-    db: AsyncSession = Depends(get_db),
+def get_alerts(
+    db = Depends(get_db),
     _user=Depends(get_current_user)
 ):
     """
@@ -40,12 +40,12 @@ async def get_alerts(
         .where(Order.status.notin_(["已完成", "已取消"]))
         .order_by(Order.delivery_date)
     )
-    order_result = await db.execute(order_query)
+    order_result =  db.execute(order_query)
     orders = order_result.scalars().all()
 
     for order in orders:
         # 查询客户名称
-        cust_result = await db.execute(select(Customer.name).where(Customer.id == order.customer_id))
+        cust_result =  db.execute(select(Customer.name).where(Customer.id == order.customer_id))
         cust_name = cust_result.scalar_one_or_none()
 
         # 计算剩余天数
@@ -67,12 +67,12 @@ async def get_alerts(
 
     # ===== 查询待跟进客户 =====
     # 查找所有客户
-    all_customers_result = await db.execute(select(Customer))
+    all_customers_result = db.execute(select(Customer))
     all_customers = all_customers_result.scalars().all()
 
     for customer in all_customers:
         # 查询该客户最近一次跟进记录
-        last_followup_result = await db.execute(
+        last_followup_result = db.execute(
             select(FollowUp)
             .where(FollowUp.customer_id == customer.id)
             .order_by(FollowUp.follow_time.desc())
