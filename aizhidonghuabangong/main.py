@@ -1,5 +1,5 @@
-# main.py 小微企业自动化办公系统 主入口（同步SQLAlchemy版本）
-from contextlib import contextmanager
+# main.py 小微企业自动化办公系统 主入口（同步SQLAlchemy + async lifespan外壳，修复render报错）
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -36,9 +36,9 @@ def create_default_admin():
         db.close()
 
 
-@contextmanager
-def lifespan(app: FastAPI):
-    """应用生命周期：启动自动建表+创建管理员"""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期：外壳异步，内部执行同步数据库初始化"""
     print("[START] Initializing database...")
     init_db()
     create_default_admin()
@@ -85,4 +85,3 @@ def login(data: UserLogin, db = Depends(get_db)):
 
 # 挂载静态HTML前端页面，访问根路径打开网页
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
-
