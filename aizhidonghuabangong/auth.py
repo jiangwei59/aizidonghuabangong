@@ -29,13 +29,16 @@ security = HTTPBearer()
 
 
 def hash_password(password: str) -> str:
-    """对密码进行哈希处理"""
-    return pwd_context.hash(password)
+    """对密码进行哈希处理，兼容bcrypt最多72字节限制"""
+    # 转utf8字节，只取前72字节
+    pw_bytes = password.encode("utf-8")[:72]
+    return pwd_context.hash(pw_bytes)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码是否匹配"""
-    return pwd_context.verify(plain_password, hashed_password)
+    pw_bytes = plain_password.encode("utf-8")[:72]
+    return pwd_context.verify(pw_bytes, hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
